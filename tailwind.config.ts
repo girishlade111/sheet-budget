@@ -80,10 +80,32 @@ export default {
             height: "0",
           },
         },
+        "card-float": {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "0.45" },
+          "50%": { opacity: "0.9" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "card-float": "card-float 6s ease-in-out infinite",
+        "pulse-soft": "pulse-soft 3s ease-in-out infinite",
+      },
+      fontFamily: {
+        sans: [
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'SF Pro Text',
+          'Roboto',
+          'ui-sans-serif',
+          'sans-serif',
+        ],
       },
     },
   },

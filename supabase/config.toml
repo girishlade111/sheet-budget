@@ -1,1 +1,4 @@
 project_id = "triqoixohbdegjaymtfm"
+
+[functions.gsheets-expenses]
+verify_jwt = false
