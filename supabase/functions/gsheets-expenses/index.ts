@@ -7,18 +7,24 @@ const corsHeaders = {
 };
 
 const SHEETS_API_KEY = Deno.env.get("GOOGLE_SHEETS_API_KEY");
-const RAW_SHEET_ID = Deno.env.get("GOOGLE_SHEET_ID") ?? "";
-// Allow either a plain sheet ID or a full docs.google.com URL in the secret
-const SHEET_ID = RAW_SHEET_ID.includes("/spreadsheets/")
-  ? (() => {
-      try {
-        const afterD = RAW_SHEET_ID.split("/d/")[1];
-        return afterD ? afterD.split("/")[0] : RAW_SHEET_ID;
-      } catch {
-        return RAW_SHEET_ID;
-      }
-    })()
-  : RAW_SHEET_ID;
+const RAW_SHEET_ID = (Deno.env.get("GOOGLE_SHEET_ID") ?? "").trim();
+
+// Normalize sheet ID: accept either the raw ID (1sx4...) or a full docs.google.com URL
+const SHEET_ID = (() => {
+  if (!RAW_SHEET_ID) return "";
+  if (RAW_SHEET_ID.includes("/spreadsheets/")) {
+    try {
+      const afterD = RAW_SHEET_ID.split("/d/")[1];
+      const core = afterD ? afterD.split("/")[0] : RAW_SHEET_ID;
+      return core.split("?")[0];
+    } catch {
+      return RAW_SHEET_ID;
+    }
+  }
+  // If it's not a full URL, still strip any accidental query/hash
+  return RAW_SHEET_ID.split("?")[0].split("#")[0];
+})();
+
 const SHEET_NAME = "Table1";
 
 if (!SHEETS_API_KEY || !SHEET_ID) {
@@ -150,22 +156,30 @@ serve(async (req: Request) => {
     });
   }
 
-  const url = new URL(req.url);
+  console.log("[gsheets-expenses] Using sheetsBase", sheetsBase, "sheetName", SHEET_NAME);
 
   try {
     if (req.method === "GET") {
       // Fetch all rows
       const range = encodeURIComponent(`${SHEET_NAME}!A2:L`);
       const apiUrl = `${sheetsBase}/values/${range}?key=${SHEETS_API_KEY}`;
+      console.log("[gsheets-expenses] GET", apiUrl);
 
       const res = await fetch(apiUrl);
       if (!res.ok) {
         const text = await res.text();
         console.error("Sheets read error", res.status, text);
-        return new Response(JSON.stringify({ error: "Failed to read from sheet" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Failed to read from sheet",
+            status: res.status,
+            details: text.slice(0, 300),
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       const data = await res.json();
@@ -210,6 +224,7 @@ serve(async (req: Request) => {
       // Compute next ID by fetching current last row id (simple strategy)
       const idRange = encodeURIComponent(`${SHEET_NAME}!A2:A`);
       const idUrl = `${sheetsBase}/values/${idRange}?key=${SHEETS_API_KEY}`;
+      console.log("[gsheets-expenses] ID lookup", idUrl);
       const idRes = await fetch(idUrl);
       let nextId = 1;
       if (idRes.ok) {
@@ -226,6 +241,7 @@ serve(async (req: Request) => {
 
       const appendRange = encodeURIComponent(`${SHEET_NAME}!A2:L`);
       const appendUrl = `${sheetsBase}/values/${appendRange}:append?valueInputOption=USER_ENTERED&key=${SHEETS_API_KEY}`;
+      console.log("[gsheets-expenses] APPEND", appendUrl, "row", rowToAppend);
 
       const appendRes = await fetch(appendUrl, {
         method: "POST",
@@ -238,10 +254,17 @@ serve(async (req: Request) => {
       if (!appendRes.ok) {
         const text = await appendRes.text();
         console.error("Sheets append error", appendRes.status, text);
-        return new Response(JSON.stringify({ error: "Failed to append to sheet" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Failed to append to sheet",
+            status: appendRes.status,
+            details: text.slice(0, 300),
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       return new Response(JSON.stringify({ success: true }), {
