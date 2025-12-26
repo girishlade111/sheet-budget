@@ -77,10 +77,12 @@ export const useTransactions = (filters: TransactionFilters) => {
     queryKey: ["transactions"],
     queryFn: async () => {
       const res = await fetch(API_BASE);
+      const json = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error("Failed to load transactions");
+        const msg = (json as any)?.error || `Failed to load transactions (${res.status})`;
+        throw new Error(msg);
       }
-      return res.json();
+      return json as { transactions: Transaction[] };
     },
     staleTime: 15_000,
   });
