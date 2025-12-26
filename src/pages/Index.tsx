@@ -9,6 +9,7 @@ import { TransactionFilters } from "@/types/transaction";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SocialLinks } from "@/components/SocialLinks";
 
 const Index = () => {
   const [filters, setFilters] = useState<TransactionFilters>({ type: "All" });
@@ -101,6 +102,15 @@ const Index = () => {
           )}
         </div>
       </section>
+
+      <footer className="border-t border-border/60 bg-background/80">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-[11px] text-muted-foreground md:flex-row">
+          <p className="order-2 md:order-1">© {new Date().getFullYear()} Expense Flow · Built by Girish Lade</p>
+          <div className="order-1 md:order-2">
+            <SocialLinks />
+          </div>
+        </div>
+      </footer>
     </main>
   );
 };
