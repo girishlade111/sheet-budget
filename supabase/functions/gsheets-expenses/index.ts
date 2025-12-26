@@ -7,11 +7,22 @@ const corsHeaders = {
 };
 
 const SHEETS_API_KEY = Deno.env.get("GOOGLE_SHEETS_API_KEY");
-const SHEET_ID = Deno.env.get("GOOGLE_SHEET_ID");
+const RAW_SHEET_ID = Deno.env.get("GOOGLE_SHEET_ID") ?? "";
+// Allow either a plain sheet ID or a full docs.google.com URL in the secret
+const SHEET_ID = RAW_SHEET_ID.includes("/spreadsheets/")
+  ? (() => {
+      try {
+        const afterD = RAW_SHEET_ID.split("/d/")[1];
+        return afterD ? afterD.split("/")[0] : RAW_SHEET_ID;
+      } catch {
+        return RAW_SHEET_ID;
+      }
+    })()
+  : RAW_SHEET_ID;
 const SHEET_NAME = "Table1";
 
 if (!SHEETS_API_KEY || !SHEET_ID) {
-  console.error("Google Sheets env vars are not set.");
+  console.error("Google Sheets env vars are not set or sheet ID is empty.");
 }
 
 type TransactionRow = [
