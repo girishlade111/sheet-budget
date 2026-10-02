@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+# Expense Flow (sheet-budget)
 
-## Project info
+A live personal-finance dashboard that reads transactions straight from a Google Sheet and turns them into a searchable, filterable, charted budget view. Built with React + Vite and powered by a Supabase Edge Function that syncs rows from Google Sheets on demand.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Built by Girish Lade** — [ladestack.in](https://ladestack.in)
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **Google Sheets sync** — expense/income rows are pulled from a Google Sheet (`Table1`) through the `gsheets-expenses` Supabase Edge Function; one-click refresh in the header.
+- **Dashboard overview** — summary cards for total income, total expenses, and net balance, recomputed live from the synced data.
+- **Charts** — spending breakdowns via Recharts (category splits, trends).
+- **Filters & search** — filter by transaction type, category, and date range; full transaction table with sorting.
+- **Add transaction** — validated dialog (React Hook Form + Zod) that appends a row back to the sheet through the edge function.
+- **Dark/light themes** — `next-themes` powered theme toggle.
+- **Modern UI** — shadcn/ui component library on Tailwind CSS with a polished, responsive layout.
 
-**Use Lovable**
+## Tech stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- React 18, TypeScript, Vite 5
+- Tailwind CSS 3, shadcn/ui (Radix primitives), Lucide icons
+- TanStack Query (data fetching/caching), React Router, React Hook Form + Zod, Recharts
+- Supabase (`@supabase/supabase-js` + Edge Function in Deno) — bridge to the Google Sheets API
+- Deployed as a fully static build on GitHub Pages
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Quick start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone
+git clone https://github.com/girishlade111/sheet-budget.git
+cd sheet-budget
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Install
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Configure — fill in your values in .env
+# VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY,
+# VITE_SUPABASE_PROJECT_ID
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Run locally
 npm run dev
+
+# 5. Build a static production bundle
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## Project structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+  pages/              # Index (dashboard), NotFound
+  components/         # SummaryCards, ChartsSection, FiltersBar,
+                      # TransactionsTable, AddTransactionDialog, NavLink,
+                      # SocialLinks + shadcn ui/ primitives
+  hooks/              # use-transactions (React Query + edge-function calls)
+  integrations/supabase/  # generated client + Database types
+  types/              # Transaction, filters, stats types
+supabase/
+  functions/gsheets-expenses/  # Deno edge function: Google Sheets read/write
+```
 
-**Use GitHub Codespaces**
+## Environment variables
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable | Purpose |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Supabase project URL (baked into the client at build time) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key |
+| `VITE_SUPABASE_PROJECT_ID` | Supabase project ref |
 
-## What technologies are used for this project?
+The `gsheets-expenses` edge function itself needs `GOOGLE_SHEET_ID` (sheet ID or full docs URL) plus the Sheets API key configured in the Supabase project — those live server-side, not in this repo.
 
-This project is built with:
+## Deploy notes
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The frontend is a pure static SPA (`vite build` → `dist/`), so it can be hosted anywhere static: GitHub Pages, Cloudflare Pages, Netlify, or Vercel. The `.env` values are baked in at build time; the edge function must already be deployed to your Supabase project for data sync to work.
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT — free to use and modify.
